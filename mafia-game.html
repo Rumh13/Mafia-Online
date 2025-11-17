@@ -20,7 +20,7 @@
         }
         
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
@@ -54,7 +54,7 @@
             color: #ff9a3c;
         }
         
-        input, button {
+        input, button, select {
             width: 100%;
             padding: 15px;
             border-radius: 10px;
@@ -63,14 +63,14 @@
             margin-bottom: 10px;
         }
         
-        input {
+        input, select {
             background: rgba(255, 255, 255, 0.9);
             color: #333;
             text-align: center;
             border: 2px solid transparent;
         }
         
-        input:focus {
+        input:focus, select:focus {
             border-color: #ff9a3c;
             outline: none;
         }
@@ -90,6 +90,12 @@
         button:disabled {
             background: #666;
             cursor: not-allowed;
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+            width: auto;
         }
         
         .room-code {
@@ -161,18 +167,65 @@
             border-radius: 5px;
             background: rgba(255, 255, 255, 0.1);
         }
+        
+        .rooms-list {
+            margin: 20px 0;
+        }
+        
+        .room-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .room-item:hover {
+            border-color: #ff9a3c;
+            background: rgba(255, 155, 60, 0.1);
+        }
+        
+        .room-info {
+            flex-grow: 1;
+        }
+        
+        .room-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #ff9a3c;
+        }
+        
+        .room-details {
+            font-size: 14px;
+            color: #ccc;
+        }
+        
+        .refresh-btn {
+            background: #2ed573;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- الشاشة 1: إنشاء غرفة أو الانضمام -->
+        <!-- الشاشة 1: القائمة الرئيسية -->
         <div class="screen active" id="screen1">
             <h1>🎮 لعبة المافيا</h1>
             
             <div class="instructions">
                 <h3>طريقة اللعب:</h3>
                 <p>• اختر إنشاء غرفة جديدة أو الانضمام إلى غرفة موجودة</p>
-                <p>• شارك كود الغرفة مع أصدقائك</p>
+                <p>• يمكنك تسمية الغرفة باسمك المفضل</p>
                 <p>• ابدأ اللعبة عندما ينضم 4-6 لاعبين</p>
             </div>
             
@@ -181,8 +234,8 @@
                 <input type="text" id="playerName" placeholder="اكتب اسمك هنا" maxlength="15">
             </div>
             
-            <button onclick="showScreen('screen2')">🎯 إنشاء غرفة جديدة</button>
-            <button onclick="showScreen('screen3')">🔗 الانضمام إلى غرفة</button>
+            <button onclick="showScreen('screen2')">🆕 إنشاء غرفة جديدة</button>
+            <button onclick="showRoomsScreen()">🔗 عرض الغرف المتاحة</button>
         </div>
 
         <!-- الشاشة 2: إنشاء غرفة جديدة -->
@@ -194,12 +247,32 @@
                 <input type="text" id="createPlayerName" placeholder="اكتب اسمك">
             </div>
             
+            <div class="input-group">
+                <label for="roomName">اسم الغرفة:</label>
+                <input type="text" id="roomName" placeholder="اختر اسم للغرفة (مثال: غرفة أحمد)" maxlength="20">
+            </div>
+            
             <button onclick="createRoom()">✅ إنشاء الغرفة</button>
             <button onclick="showScreen('screen1')">↩ رجوع</button>
         </div>
 
-        <!-- الشاشة 3: الانضمام إلى غرفة -->
+        <!-- الشاشة 3: قائمة الغرف المتاحة -->
         <div class="screen" id="screen3">
+            <h1>🏠 الغرف المتاحة</h1>
+            
+            <button onclick="loadRooms()" class="refresh-btn">🔄 تحديث القائمة</button>
+            
+            <div class="rooms-list" id="roomsList">
+                <div class="empty-state">
+                    🔄 جاري تحميل الغرف...
+                </div>
+            </div>
+            
+            <button onclick="showScreen('screen1')">↩ رجوع للقائمة الرئيسية</button>
+        </div>
+
+        <!-- الشاشة 4: الانضمام إلى غرفة -->
+        <div class="screen" id="screen4">
             <h1>🔗 الانضمام إلى غرفة</h1>
             
             <div class="input-group">
@@ -216,12 +289,14 @@
             <button onclick="showScreen('screen1')">↩ رجوع</button>
         </div>
 
-        <!-- الشاشة 4: غرفة اللعب -->
-        <div class="screen" id="screen4">
+        <!-- الشاشة 5: غرفة اللعب -->
+        <div class="screen" id="screen5">
             <h1>👥 غرفة اللعب</h1>
             
             <div class="room-code">
-                🔗 كود الغرفة: <span id="roomCodeDisplay">----</span>
+                🏠 <span id="roomNameDisplay">غرفة</span>
+                <br>
+                <small>كود: <span id="roomCodeDisplay">----</span></small>
             </div>
             
             <div class="instructions">
@@ -251,11 +326,11 @@
             <button onclick="leaveRoom()" style="background: #ff4757;">🚪 مغادرة الغرفة</button>
         </div>
 
-        <!-- الشاشة 5: اللعبة -->
-        <div class="screen" id="screen5">
+        <!-- الشاشة 6: اللعبة -->
+        <div class="screen" id="screen6">
             <h1>🎭 لعبة المافيا</h1>
             <div id="gameContent"></div>
-            <button onclick="showScreen('screen4')">↩ العودة للغرفة</button>
+            <button onclick="showScreen('screen5')">↩ العودة للغرفة</button>
         </div>
     </div>
 
@@ -283,8 +358,10 @@
             players: [],
             currentPlayer: null,
             roomCode: null,
+            roomName: '',
             roomRef: null,
-            unsubscribe: null
+            unsubscribe: null,
+            roomsUnsubscribe: null
         };
 
         // تحديث حالة الاتصال
@@ -302,11 +379,114 @@
             document.getElementById(screenId).classList.add('active');
         }
 
+        // عرض شاشة الغرف
+        function showRoomsScreen() {
+            const playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) {
+                alert('الرجاء إدخال اسمك أولاً');
+                return;
+            }
+            
+            document.getElementById('joinPlayerName').value = playerName;
+            showScreen('screen3');
+            loadRooms();
+        }
+
+        // تحميل الغرف المتاحة
+        function loadRooms() {
+            const roomsList = document.getElementById('roomsList');
+            roomsList.innerHTML = '<div class="empty-state">🔄 جاري البحث عن الغرف...</div>';
+
+            // إلغاء الاشتراك السابق إذا كان موجوداً
+            if (gameData.roomsUnsubscribe) {
+                gameData.roomsUnsubscribe();
+            }
+
+            // الاشتراك في تحديثات الغرف
+            gameData.roomsUnsubscribe = db.collection('rooms')
+                .where('gameState', '==', 'waiting')
+                .onSnapshot((snapshot) => {
+                    const rooms = [];
+                    snapshot.forEach((doc) => {
+                        const roomData = doc.data();
+                        if (roomData.players.length < 6) { // فقط الغرف غير الممتلئة
+                            rooms.push({
+                                id: doc.id,
+                                ...roomData
+                            });
+                        }
+                    });
+
+                    displayRooms(rooms);
+                }, (error) => {
+                    console.error('Error loading rooms:', error);
+                    roomsList.innerHTML = '<div class="empty-state">❌ خطأ في تحميل الغرف</div>';
+                });
+        }
+
+        // عرض الغرف في القائمة
+        function displayRooms(rooms) {
+            const roomsList = document.getElementById('roomsList');
+            
+            if (rooms.length === 0) {
+                roomsList.innerHTML = `
+                    <div class="empty-state">
+                        🏠 لا توجد غرف متاحة حالياً
+                        <br>
+                        <small>يمكنك إنشاء غرفة جديدة!</small>
+                    </div>
+                `;
+                return;
+            }
+
+            roomsList.innerHTML = '';
+            rooms.forEach(room => {
+                const roomItem = document.createElement('div');
+                roomItem.className = 'room-item';
+                
+                const hostPlayer = room.players.find(p => p.id === room.host);
+                const hostName = hostPlayer ? hostPlayer.name : 'مجهول';
+                
+                roomItem.innerHTML = `
+                    <div class="room-info">
+                        <div class="room-name">${room.roomName || 'غرفة بدون اسم'}</div>
+                        <div class="room-details">
+                            المضيف: ${hostName} | اللاعبين: ${room.players.length}/6
+                        </div>
+                    </div>
+                    <button class="btn-small" onclick="joinRoomById('${room.id}')">
+                        انضم ✅
+                    </button>
+                `;
+                
+                roomsList.appendChild(roomItem);
+            });
+        }
+
+        // الانضمام إلى غرفة من القائمة
+        function joinRoomById(roomId) {
+            const playerName = document.getElementById('joinPlayerName').value.trim();
+            if (!playerName) {
+                alert('الرجاء إدخال اسمك');
+                return;
+            }
+
+            gameData.roomCode = roomId;
+            joinRoom();
+        }
+
         // إنشاء غرفة جديدة
         async function createRoom() {
             const playerName = document.getElementById('createPlayerName').value.trim();
+            const roomName = document.getElementById('roomName').value.trim();
+            
             if (!playerName) {
                 alert('الرجاء إدخال اسمك');
+                return;
+            }
+
+            if (!roomName) {
+                alert('الرجاء إدخال اسم للغرفة');
                 return;
             }
 
@@ -319,12 +499,14 @@
             };
 
             gameData.roomCode = generateRoomCode();
+            gameData.roomName = roomName;
             
             try {
                 gameData.roomRef = db.collection('rooms').doc(gameData.roomCode);
                 
                 await gameData.roomRef.set({
                     code: gameData.roomCode,
+                    roomName: roomName,
                     host: playerId,
                     players: [gameData.currentPlayer],
                     gameState: 'waiting',
@@ -344,7 +526,11 @@
         // الانضمام إلى غرفة موجودة
         async function joinRoom() {
             const playerName = document.getElementById('joinPlayerName').value.trim();
-            const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            let roomCode = gameData.roomCode;
+            
+            if (!roomCode) {
+                roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            }
             
             if (!playerName) {
                 alert('الرجاء إدخال اسمك');
@@ -381,10 +567,18 @@
                     return;
                 }
 
+                // التحقق من عدم وجود لاعب بنفس الاسم
+                const existingPlayer = roomData.players.find(p => p.name === playerName);
+                if (existingPlayer) {
+                    alert('❌ يوجد لاعب آخر بنفس الاسم في هذه الغرفة!');
+                    return;
+                }
+
                 await gameData.roomRef.update({
                     players: firebase.firestore.FieldValue.arrayUnion(gameData.currentPlayer)
                 });
 
+                gameData.roomName = roomData.roomName || 'غرفة بدون اسم';
                 setupRoomListener();
                 showRoomScreen();
                 updateConnectionStatus('✅ تم الانضمام للغرفة بنجاح');
@@ -401,6 +595,7 @@
                 if (doc.exists) {
                     const roomData = doc.data();
                     gameData.players = roomData.players || [];
+                    gameData.roomName = roomData.roomName || 'غرفة بدون اسم';
                     updateRoomDisplay(roomData);
                 }
             }, (error) => {
@@ -412,11 +607,12 @@
         // عرض شاشة الغرفة
         function showRoomScreen() {
             document.getElementById('roomCodeDisplay').textContent = gameData.roomCode;
+            document.getElementById('roomNameDisplay').textContent = gameData.roomName;
             document.getElementById('roomCodeShare').value = gameData.roomCode;
             document.getElementById('roomCodeText').textContent = gameData.roomCode;
             document.getElementById('currentPlayerDisplay').textContent = `${gameData.currentPlayer.name} (أنت)`;
             
-            showScreen('screen4');
+            showScreen('screen5');
         }
 
         // تحديث عرض الغرفة
@@ -483,7 +679,7 @@
                     gameState: 'playing'
                 });
 
-                showScreen('screen5');
+                showScreen('screen6');
                 showGameRoles(playersWithRoles);
                 
             } catch (error) {
@@ -543,6 +739,10 @@
             if (confirm('هل تريد مغادرة الغرفة؟')) {
                 if (gameData.unsubscribe) {
                     gameData.unsubscribe();
+                }
+                
+                if (gameData.roomsUnsubscribe) {
+                    gameData.roomsUnsubscribe();
                 }
                 
                 if (gameData.roomRef && gameData.currentPlayer) {
